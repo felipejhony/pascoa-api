@@ -2,6 +2,7 @@ package br.com.felipe.pascoaapi.pascoa_api.controller;
 
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,8 @@ import br.com.felipe.pascoaapi.pascoa_api.repo.PascoaSorteRepository;
 public class PascoaController {
 
 	PascoaSorteRepository pascoaSorteRepository;
+	
+	Logger logger = Logger.getLogger(getClass().getName());
 
 	public PascoaController(PascoaSorteRepository pascoaSorteRepository) {
 		this.pascoaSorteRepository = pascoaSorteRepository;
@@ -26,10 +29,11 @@ public class PascoaController {
 	public PascoaSorte getSorte() {
 		
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		logger.info("User: " + username + " requisitou NOVO NUMERO DA SORTE.");
 		PascoaSorte p = pascoaSorteRepository.findByUsuario(username);
 		if(p.getNumeroSorte() == 0) {
 			Random rand = new Random();
-			int numero = rand.nextInt(Integer.MAX_VALUE);
+			int numero = rand.nextInt(1000);
 			p.setNumeroSorte(numero);
 			pascoaSorteRepository.save(p);
 		}
@@ -39,6 +43,8 @@ public class PascoaController {
 	@GetMapping("/reset")
 	public ResponseEntity<Void> reset() {
 
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		logger.info("User: " + username + " requisitou RESET.");
 		List<PascoaSorte> list = pascoaSorteRepository.findAll();
 		list.forEach(e -> {
 			e.setNumeroSorte(0);
@@ -50,8 +56,9 @@ public class PascoaController {
 	
 	@GetMapping("/todos")
 	public List<PascoaSorte> findAll() {
-		
-		return pascoaSorteRepository.findAll();
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		logger.info("User: " + username + " requisitou TODOS.");
+		return pascoaSorteRepository.findAllByOrderByNumeroSorteDesc();
 	}
 
 }
